@@ -1,148 +1,203 @@
 import streamlit as st
 from prompts import *
 from utils import ExtractPDF, SendRequest, CreatePDF
-import logging
-import os
-from datetime import datetime
 
-# Configure logging
-log_directory = "logs"
-if not os.path.exists(log_directory):
-    os.makedirs(log_directory)
-
-log_filename = os.path.join(log_directory, f"careercanvas_{datetime.now().strftime('%Y%m%d')}.log")
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler(log_filename),
-        logging.StreamHandler()
-    ]
-)
-logger = logging.getLogger(__name__)
-
-# Basic Streamlit App Configuration
+# Streamlit App Layout and Theme Configuration
 st.set_page_config(
     page_title="CareerCanvas AI",
-    layout="wide"
+    layout="wide",
+    initial_sidebar_state="expanded"
 )
 
-logger.info("Starting CareerCanvas AI application")
+# Custom CSS for better styling
+st.markdown("""
+    <style>
+    .main {
+        padding: 2rem;
+    }
+    .stButton>button {
+        width: 100%;
+        border-radius: 10px;
+        height: 3em;
+        background-color: #4CAF50;
+        color: white;
+        font-weight: 500;
+        margin: 0.5em 0;
+    }
+    .stTextArea>div>div>textarea {
+        border-radius: 10px;
+    }
+    .uploadedFile {
+        border-radius: 10px;
+    }
+    .css-1d391kg {
+        padding: 2rem 1rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
 
-# App title and description
-st.title("CareerCanvas AI")
-st.markdown("Transform your career story with AI-powered resume optimization")
+# Theme Selector in Sidebar
+with st.sidebar:
+    theme = st.selectbox(
+        "Choose Theme",
+        ["Light", "Dark"],
+        key="theme"
+    )
+    if theme == "Dark":
+        st.markdown("""
+            <style>
+            .stApp, .st-emotion-cache-eczf16, .st-emotion-cache-18ni7ap, .st-emotion-cache-1cypcdb {
+                background-color: #1E1E1E !important;
+                color: #FFFFFF !important;
+            }
+            .st-emotion-cache-16txtl3, .st-emotion-cache-ue6h4q {
+                color: #FFFFFF !important;
+            }
+            .st-emotion-cache-1avcm0n {
+                background-color: #2d2d2d !important;
+            }
+            .stButton>button {
+                background-color: #4CAF50 !important;
+                color: white !important;
+            }
+            .stTextArea>div>div>textarea {
+                background-color: #2d2d2d !important;
+                color: white !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
+    else:
+        st.markdown("""
+            <style>
+            .stApp, .st-emotion-cache-eczf16, .st-emotion-cache-18ni7ap {
+                background-color: #FFFFFF !important;
+                color: #000000 !important;
+            }
+            .stButton>button {
+                background-color: #4CAF50 !important;
+                color: white !important;
+            }
+            </style>
+        """, unsafe_allow_html=True)
 
-# Sidebar navigation
-st.sidebar.header("Navigation")
+# Main App Header with Modern Design
+st.markdown("""
+    <h1 style='text-align: center; color: #4CAF50; margin-bottom: 1em;'>
+        CareerCanvas AI
+    </h1>
+    <p style='text-align: center; font-size: 1.2em; color: #666; margin-bottom: 2em;'>
+        Transform your career story with AI-powered resume optimization
+    </p>
+""", unsafe_allow_html=True)
+
+# Enhanced Sidebar Navigation
 st.sidebar.markdown("""
-    - Job Description Input
-    - Resume Upload
-    - Analysis Options
+    # Navigation Guide
+    
+    ### Step 1: Job Description
+    Drop your target role's description below
+    
+    ### Step 2: Resume Upload
+    Share your PDF resume for analysis
+    
+    ### Step 3: AI Tools
+    Choose from our smart tools below
+    
+    ---
 """)
 
-# Main content area
-st.header("Job Description & Resume")
+# Main Content Area with Modern Layout
+with st.container():
+    col1, col2 = st.columns([1, 1])
+    
+    with col1:
+        st.markdown("### Job Description")
+        jd_input = st.text_area(
+            "",
+            placeholder="Paste the job description that matches your dream role...",
+            key="text",
+            height=200,
+            help="This helps us tailor your resume perfectly for the position"
+        )
 
-# Job Description Input
-jd_input = st.text_area(
-    "Enter Job Description",
-    placeholder="Paste the job description here.",
-    height=150,
-    help="Paste the job description for the position you're applying for."
-)
+    with col2:
+        st.markdown("### Your Resume")
+        uploaded_file = st.file_uploader(
+            "",
+            type=["pdf"],
+            help="Upload your resume in PDF format"
+        )
+        if uploaded_file:
+            st.success("Resume successfully uploaded! Ready for optimization.")
 
-# Resume Upload
-uploaded_file = st.file_uploader("Upload Your Resume (PDF)", type=["pdf"])
-if uploaded_file:
-    logger.info(f"Resume uploaded: {uploaded_file.name}")
-    st.success("Resume uploaded successfully!")
+# AI Tools Section
+st.markdown("""
+    <h2 style='text-align: center; margin: 2em 0 1em 0;'>
+        Smart Career Tools
+    </h2>
+""", unsafe_allow_html=True)
 
-# Analysis Tools Section
-st.header("AI Analysis Tools")
+# Enhanced Analysis Options
+with st.container():
+    col1, col2 = st.columns(2)
+    
+    with col1:
+        st.markdown("### Analysis Tools")
+        submit1 = st.button("Role Insights Explorer")
+        submit2 = st.button("Skills Gap Detector")
+        submit3 = st.button("Match Score Analysis")
+        submit4 = st.button("ATS Compatibility Scanner")
 
-# Analysis buttons
-submit1 = st.button("Role Insights Explorer")
-submit2 = st.button("Skills Gap Detector")
-submit3 = st.button("Match Score Analysis")
-submit4 = st.button("ATS Compatibility Scanner")
-submit5 = st.button("Smart Resume Feedback")
-submit6 = st.button("Create Optimized Resume")
-submit7 = st.button("Craft Cover Letter")
+    with col2:
+        st.markdown("### Generation Tools")
+        submit5 = st.button("Smart Resume Feedback")
+        submit6 = st.button("Create Optimized Resume")
+        submit7 = st.button("Craft Cover Letter")
 
+# Rest of the functions remain the same
 def generate_response(prompt):
-    """Generate AI response based on uploaded resume and job description"""
     if uploaded_file is not None:
-        logger.info(f"Starting analysis with prompt type: {prompt[:50]}...")
         with st.spinner('Analyzing your resume...'):
-            try:
-                pdf_content = ExtractPDF(uploaded_file)
-                logger.info("Successfully extracted PDF content")
-                
-                response = SendRequest(jd_input, pdf_content, prompt)
-                logger.info("Successfully received AI response")
-                
-                st.subheader("Analysis Results")
-                st.write(response)
-            except Exception as e:
-                logger.error(f"Error during analysis: {str(e)}")
-                st.error("An error occurred during the analysis. Please try again.")
+            pdf_content = ExtractPDF(uploaded_file)
+            response = SendRequest(jd_input, pdf_content, prompt)
+            st.markdown("### Analysis Results")
+            st.write(response)
     else:
-        logger.warning("Analysis attempted without uploaded resume")
-        st.warning("Please upload a resume to proceed!")
+        st.warning("Please upload your resume to begin!")
 
 def generate_pdf(prompt):
-    """Generate optimized PDF document based on AI suggestions"""
     if uploaded_file is not None:
-        logger.info(f"Starting PDF generation with prompt type: {prompt[:50]}...")
         with st.spinner('Creating your optimized document...'):
-            try:
-                pdf_content = ExtractPDF(uploaded_file)
-                logger.info("Successfully extracted PDF content for optimization")
-                
-                optimized_text = SendRequest(jd_input, pdf_content, prompt)
-                logger.info("Successfully received optimized content from AI")
-                
-                input_filename = uploaded_file.name.split('.')[0]
-                optimized_filename = CreatePDF(optimized_text, input_filename)
-                
-                if optimized_filename:
-                    logger.info(f"Successfully created optimized PDF: {optimized_filename}")
-                    with open(optimized_filename, "rb") as file:
-                        st.download_button(
-                            "Download Enhanced Document",
-                            file,
-                            file_name=optimized_filename
-                        )
-                else:
-                    logger.error("Failed to generate optimized PDF")
-                    st.error("Error generating the optimized resume.")
-            except Exception as e:
-                logger.error(f"Error during PDF generation: {str(e)}")
-                st.error("An error occurred while generating the optimized document.")
+            pdf_content = ExtractPDF(uploaded_file)
+            optimized_text = SendRequest(jd_input, pdf_content, prompt)
+            input_filename = uploaded_file.name.split('.')[0]
+            optimized_filename = CreatePDF(optimized_text, input_filename)
+            
+            if optimized_filename:
+                with open(optimized_filename, "rb") as file:
+                    st.download_button(
+                        "Download Your Enhanced Document",
+                        file,
+                        file_name=optimized_filename,
+                        help="Click to download your optimized document"
+                    )
+            else:
+                st.error("We encountered an issue during generation.")
     else:
-        logger.warning("PDF generation attempted without uploaded resume")
-        st.warning("Please upload a resume to proceed!")
+        st.warning("Please upload your resume to begin!")
 
 # Button Logic
 if submit1:
-    logger.info("Role Insights Explorer analysis requested")
     generate_response(prompt1)
 elif submit2:
-    logger.info("Skills Gap Detector analysis requested")
     generate_response(prompt2)
 elif submit3:
-    logger.info("Match Score Analysis requested")
     generate_response(prompt3)
 elif submit4:
-    logger.info("ATS Compatibility Scanner analysis requested")
     generate_response(prompt4)
 elif submit5:
-    logger.info("Smart Resume Feedback analysis requested")
     generate_response(prompt5)
 elif submit6:
-    logger.info("Create Optimized Resume requested")
     generate_pdf(prompt6)
 elif submit7:
-    logger.info("Craft Cover Letter requested")
     generate_pdf(prompt7)
